@@ -24,7 +24,8 @@ namespace WebApplication3.Controllers
           if (HttpContext.WebSockets.IsWebSocketRequest)
           {
               using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-              await Echo(webSocket, Callback);
+              var ex = new WebsocketEx(webSocket, Callback);
+              await ex.RunClientAsync();
           }
           else
           {
@@ -36,19 +37,6 @@ namespace WebApplication3.Controllers
         {
             Console.WriteLine("Got message " + stringData);
             await webSocket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
-        }
-
-        private async Task Echo(WebSocket webSocket, Func<WebSocket, string, Task> callback)
-        {
-            while (true)
-            {
-                var str = await webSocket.ReceiveUtf8StringAsync();
-                if (str == null) break;
-
-                await callback(webSocket, str);
-            }
-
-            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }
     }
 }
