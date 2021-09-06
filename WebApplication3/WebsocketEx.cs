@@ -41,9 +41,9 @@ namespace WebApplication3
             await Socket.SendUtf8StringAsync(call);
         }
 
-        public void UnregisterCommand(string id)
+        public void UnregisterCommand(string commandId)
         {
-            _commands.TryRemove(id, out _);
+            _commands.TryRemove(commandId, out _);
         }
 
         public void TryCompleteCommand(string commandId)
