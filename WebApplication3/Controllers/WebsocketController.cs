@@ -24,7 +24,6 @@ namespace WebApplication3.Controllers
           if (HttpContext.WebSockets.IsWebSocketRequest)
           {
               using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-              _logger.Log(LogLevel.Information, "WebSocket connection established");
               await Echo(webSocket, Callback);
           }
           else

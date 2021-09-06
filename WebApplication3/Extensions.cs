@@ -32,6 +32,7 @@ namespace WebApplication3
                     if (result.MessageType == WebSocketMessageType.Binary) continue;
 
                     //append bytes
+                    //this can be optimized, e.g. just use the buffer if payload is endmessage and fits in one buffer
                     byteBuffer.AddRange(buffer[..result.Count]);
                     if (!result.EndOfMessage) continue;
 
@@ -48,6 +49,7 @@ namespace WebApplication3
             }
             finally
             {
+                //we could probably return the buffer between await ReceiveAsync, to limit memory pressure
                 Pool.Return(buffer);
             }
         }
