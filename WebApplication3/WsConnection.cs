@@ -25,7 +25,7 @@ namespace WebApplication3
                 var str = await Socket.ReceiveUtf8StringAsync();
                 if (str == null) break;
 
-                await OnMessage(str);
+                await OnMessageAsync(str);
             }
 
             await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "connection closed", CancellationToken.None);
@@ -52,7 +52,7 @@ namespace WebApplication3
             }
         }
         
-        private async Task OnMessage(string message)
+        private async Task OnMessageAsync(string message)
         {
             Console.WriteLine("Got message " + message);
 
