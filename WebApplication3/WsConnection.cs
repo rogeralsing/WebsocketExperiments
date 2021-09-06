@@ -28,7 +28,7 @@ namespace WebApplication3
                 await OnMessage(str);
             }
 
-            await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+            await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "connection closed", CancellationToken.None);
         }
 
         public async Task CreateCommandAsync(string commandId, string call)
@@ -58,12 +58,14 @@ namespace WebApplication3
 
             TryCompleteCommand(message);
 
+            //hack, when we get this. start a new command
             if (message == "command")
             {
                 var id = Guid.NewGuid().ToString();
                 await CreateCommandAsync(id, id);
             }
             
+            //this would be the using the message processor
             await Socket.SendUtf8StringAsync($"Server: Hello. You said: {message}");
         }
     }
