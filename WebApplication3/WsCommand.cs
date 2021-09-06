@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace WebApplication3
@@ -15,6 +16,7 @@ namespace WebApplication3
         }
         public async Task StartAsync()
         {
+            Console.WriteLine($"Command {_id} started");
             var timeout = Task.Delay(10000);
 
             await Task.WhenAny(timeout, _tsc.Task);
@@ -22,15 +24,23 @@ namespace WebApplication3
             if (_tsc.Task.IsCompleted)
             {
                 //done
+                //done
                 //do stuff
+                Console.WriteLine($"Command {_id} completed");
             }
             else
             {
                 //timeout
                 //do stuff
+                Console.WriteLine($"Command {_id} timed out");
             }
             
             _socket.UnregisterCommand(_id);
+        }
+
+        public void Complete()
+        {
+            _tsc.TrySetResult();
         }
     }
 }

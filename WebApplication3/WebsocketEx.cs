@@ -33,10 +33,10 @@ namespace WebApplication3
             await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }
 
-        public async Task CreateCommand(string id, string call)
+        public async Task CreateCommand(string commandId, string call)
         {
-            var command = new WsCommand(id, this);
-            _commands.TryAdd(id, command);
+            var command = new WsCommand(commandId, this);
+            _commands.TryAdd(commandId, command);
             _ = command.StartAsync();
             await Socket.SendUtf8StringAsync(call);
         }
@@ -44,6 +44,14 @@ namespace WebApplication3
         public void UnregisterCommand(string id)
         {
             _commands.TryRemove(id, out _);
+        }
+
+        public void TryCompleteCommand(string commandId)
+        {
+            if (_commands.TryGetValue(commandId, out var command))
+            {
+                command.Complete();
+            }
         }
     }
 }

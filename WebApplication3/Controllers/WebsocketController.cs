@@ -36,6 +36,15 @@ namespace WebApplication3.Controllers
         private async Task Callback(WebsocketEx socket, string stringData)
         {
             Console.WriteLine("Got message " + stringData);
+
+            socket.TryCompleteCommand(stringData);
+
+            if (stringData == "hej")
+            {
+                var id = Guid.NewGuid().ToString();
+                await socket.CreateCommand(id, id);
+            }
+            
             await socket.Socket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
         }
     }
