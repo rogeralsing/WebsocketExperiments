@@ -7,7 +7,7 @@ namespace WebApplication3
     {
         private readonly string _id;
         private readonly WebsocketEx _socket;
-        private readonly TaskCompletionSource _tsc = new();
+        private readonly TaskCompletionSource _tcs = new();
 
         public WsCommand(string id, WebsocketEx socket)
         {
@@ -19,9 +19,9 @@ namespace WebApplication3
             Console.WriteLine($"Command {_id} started");
             var timeout = Task.Delay(10000);
 
-            await Task.WhenAny(timeout, _tsc.Task);
+            await Task.WhenAny(timeout, _tcs.Task);
 
-            if (_tsc.Task.IsCompleted)
+            if (_tcs.Task.IsCompleted)
             {
                 //done
                 //done
@@ -40,7 +40,7 @@ namespace WebApplication3
 
         public void Complete()
         {
-            _tsc.TrySetResult();
+            _tcs.TrySetResult();
         }
     }
 }

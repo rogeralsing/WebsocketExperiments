@@ -33,7 +33,7 @@ namespace WebApplication3
             await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }
 
-        public async Task CreateCommand(string commandId, string call)
+        public async Task CreateCommandAsync(string commandId, string call)
         {
             var command = new WsCommand(commandId, this);
             _commands.TryAdd(commandId, command);

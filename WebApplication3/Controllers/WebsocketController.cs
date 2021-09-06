@@ -42,7 +42,7 @@ namespace WebApplication3.Controllers
             if (stringData == "hej")
             {
                 var id = Guid.NewGuid().ToString();
-                await socket.CreateCommand(id, id);
+                await socket.CreateCommandAsync(id, id);
             }
             
             await socket.Socket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
