@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,12 +8,14 @@ namespace WebApplication3
 {
     public class WebsocketEx
     {
-        private readonly WebSocket _socket;
-        private readonly Func<WebSocket, string, Task> _callback;
+        public WebSocket Socket { get; }
+        private readonly Func<WebsocketEx, string, Task> _callback;
 
-        public WebsocketEx(WebSocket socket,Func<WebSocket, string, Task> callback )
+        private readonly ConcurrentDictionary<string, WsCommand> _commands = new();
+
+        public WebsocketEx(WebSocket socket,Func<WebsocketEx, string, Task> callback )
         {
-            _socket = socket;
+            Socket = socket;
             _callback = callback;
         }
         
@@ -20,13 +23,27 @@ namespace WebApplication3
         {
             while (true)
             {
-                var str = await _socket.ReceiveUtf8StringAsync();
+                //todo: we could return status codes here too
+                var str = await Socket.ReceiveUtf8StringAsync();
                 if (str == null) break;
 
-                await _callback(_socket, str);
+                await _callback(this, str);
             }
 
-            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+            await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+        }
+
+        public async Task CreateCommand(string id, string call)
+        {
+            var command = new WsCommand(id, this);
+            _commands.TryAdd(id, command);
+            _ = command.StartAsync();
+            await Socket.SendUtf8StringAsync(call);
+        }
+
+        public void UnregisterCommand(string id)
+        {
+            _commands.TryRemove(id, out _);
         }
     }
 }

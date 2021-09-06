@@ -33,10 +33,10 @@ namespace WebApplication3.Controllers
           }
         }
 
-        private async Task Callback(WebSocket webSocket, string stringData)
+        private async Task Callback(WebsocketEx socket, string stringData)
         {
             Console.WriteLine("Got message " + stringData);
-            await webSocket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
+            await socket.Socket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
         }
     }
 }
