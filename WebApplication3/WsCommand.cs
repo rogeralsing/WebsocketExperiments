@@ -6,10 +6,10 @@ namespace WebApplication3
     public class WsCommand
     {
         private readonly string _id;
-        private readonly WebsocketEx _socket;
+        private readonly WsConnection _socket;
         private readonly TaskCompletionSource _tcs = new();
 
-        public WsCommand(string id, WebsocketEx socket)
+        public WsCommand(string id, WsConnection socket)
         {
             _id = id;
             _socket = socket;

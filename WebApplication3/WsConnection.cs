@@ -6,17 +6,15 @@ using System.Threading.Tasks;
 
 namespace WebApplication3
 {
-    public class WebsocketEx
+    public class WsConnection
     {
         public WebSocket Socket { get; }
-        private readonly Func<WebsocketEx, string, Task> _callback;
 
         private readonly ConcurrentDictionary<string, WsCommand> _commands = new();
 
-        public WebsocketEx(WebSocket socket,Func<WebsocketEx, string, Task> callback )
+        public WsConnection(WebSocket socket)
         {
             Socket = socket;
-            _callback = callback;
         }
         
         public async Task RunClientAsync()
@@ -27,7 +25,7 @@ namespace WebApplication3
                 var str = await Socket.ReceiveUtf8StringAsync();
                 if (str == null) break;
 
-                await _callback(this, str);
+                await OnMessage(str);
             }
 
             await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
@@ -52,6 +50,21 @@ namespace WebApplication3
             {
                 command.Complete();
             }
+        }
+        
+        private async Task OnMessage(string message)
+        {
+            Console.WriteLine("Got message " + message);
+
+            TryCompleteCommand(message);
+
+            if (message == "command")
+            {
+                var id = Guid.NewGuid().ToString();
+                await CreateCommandAsync(id, id);
+            }
+            
+            await Socket.SendUtf8StringAsync($"Server: Hello. You said: {message}");
         }
     }
 }

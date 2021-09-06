@@ -24,7 +24,7 @@ namespace WebApplication3.Controllers
           if (HttpContext.WebSockets.IsWebSocketRequest)
           {
               using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-              var ex = new WebsocketEx(webSocket, Callback);
+              var ex = new WsConnection(webSocket);
               await ex.RunClientAsync();
           }
           else
@@ -33,19 +33,19 @@ namespace WebApplication3.Controllers
           }
         }
 
-        private async Task Callback(WebsocketEx socket, string stringData)
+        private async Task Callback(WsConnection connection, string stringData)
         {
             Console.WriteLine("Got message " + stringData);
 
-            socket.TryCompleteCommand(stringData);
+            connection.TryCompleteCommand(stringData);
 
             if (stringData == "hej")
             {
                 var id = Guid.NewGuid().ToString();
-                await socket.CreateCommandAsync(id, id);
+                await connection.CreateCommandAsync(id, id);
             }
             
-            await socket.Socket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
+            await connection.Socket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
         }
     }
 }
