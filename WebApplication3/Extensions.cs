@@ -37,7 +37,7 @@ namespace WebApplication3
                     if (!result.EndOfMessage) continue;
 
                     var bytes = byteBuffer.ToArray();
-                    
+
                     var stringData = Encoding.UTF8.GetString(bytes);
                     byteBuffer.Clear();
 
@@ -45,6 +45,11 @@ namespace WebApplication3
 
                 } while (!result.CloseStatus.HasValue);
 
+                return null;
+            }
+            catch(Exception x)
+            {
+                //Console.WriteLine("Error " + x);
                 return null;
             }
             finally

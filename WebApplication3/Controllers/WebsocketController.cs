@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace WebApplication3.Controllers
     public class WebSocketsController : ControllerBase
     {
         private readonly ILogger<WebSocketsController> _logger;
+        private static readonly ConcurrentDictionary<string, WsConnection> Connections = new();
 
         public WebSocketsController(ILogger<WebSocketsController> logger)
         {
@@ -23,9 +25,20 @@ namespace WebApplication3.Controllers
         {
           if (HttpContext.WebSockets.IsWebSocketRequest)
           {
+              var connectionId = Guid.NewGuid().ToString();
               using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-              var ex = new WsConnection(webSocket);
-              await ex.RunClientAsync();
+              Console.WriteLine("starting connection " + connectionId);
+              try
+              {
+                  var ex = new WsConnection(webSocket);
+                  Connections.TryAdd(connectionId, ex);
+                  await ex.RunClientAsync();
+              }
+              finally
+              {
+                  Connections.TryRemove(connectionId, out _);
+                  Console.WriteLine("Removing connection " + connectionId);
+              }
           }
           else
           {
@@ -33,19 +46,17 @@ namespace WebApplication3.Controllers
           }
         }
 
-        private async Task Callback(WsConnection connection, string stringData)
+        [HttpGet("/commands/{connection}")]
+        public async Task<string> RunCommand(string connection)
         {
-            Console.WriteLine("Got message " + stringData);
-
-            connection.TryCompleteCommand(stringData);
-
-            if (stringData == "hej")
+            if (Connections.TryGetValue(connection, out var wsConnection))
             {
-                var id = Guid.NewGuid().ToString();
-                await connection.CreateCommandAsync(id, id);
+                var commandId = Guid.NewGuid().ToString();
+                await wsConnection.CreateCommandAsync(commandId,commandId);
+                return commandId;
             }
-            
-            await connection.Socket.SendUtf8StringAsync($"Server: Hello. You said: {stringData}");
+
+            return "Connection not found " + connection;
         }
     }
 }
