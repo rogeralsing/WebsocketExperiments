@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,9 +50,10 @@ namespace WebApplication3
 
             app.UseAuthorization();
             
-            var webSocketOptions = new WebSocketOptions() 
+            var webSocketOptions = new WebSocketOptions
             {
-                KeepAliveInterval = TimeSpan.FromSeconds(120),
+                //AllowedOrigins = {  },
+                KeepAliveInterval = TimeSpan.FromSeconds(120)
             };
 
             app.UseWebSockets(webSocketOptions);

@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -18,44 +19,34 @@ namespace WebApplication3
                 WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
-        public static async Task<string> ReceiveUtf8StringAsync(this WebSocket webSocket)
+        public static async Task<string> ReceiveUtf8StringAsync(this WebSocket webSocket,CancellationToken ct = default)
         {
-            var byteBuffer = new List<byte>();
-            var buffer = Pool.Rent(1024);
+            var bytes = Pool.Rent(1024);
             try
             {
+                var buffer = new ArraySegment<byte>(bytes);
+                await using var ms = new MemoryStream();
                 WebSocketReceiveResult result;
                 do
                 {
-                    result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                    //discard binary messages
-                    if (result.MessageType == WebSocketMessageType.Binary) continue;
+                    ct.ThrowIfCancellationRequested();
 
-                    //append bytes
-                    //this can be optimized, e.g. just use the buffer if payload is endmessage and fits in one buffer
-                    byteBuffer.AddRange(buffer[..result.Count]);
-                    if (!result.EndOfMessage) continue;
+                    result = await webSocket.ReceiveAsync(buffer, ct);
+                    ms.Write(buffer.Array, buffer.Offset, result.Count);
+                } while (!result.EndOfMessage);
 
-                    var bytes = byteBuffer.ToArray();
+                ms.Seek(0, SeekOrigin.Begin);
+                if (result.MessageType != WebSocketMessageType.Text || result.Count.Equals(0))
+                {
+                    throw new Exception("Unexpected message");
+                }
 
-                    var stringData = Encoding.UTF8.GetString(bytes);
-                    byteBuffer.Clear();
-
-                    return stringData;
-
-                } while (!result.CloseStatus.HasValue);
-
-                return null;
-            }
-            catch(Exception x)
-            {
-                //Console.WriteLine("Error " + x);
-                return null;
+                using var reader = new StreamReader(ms, Encoding.UTF8);
+                return await reader.ReadToEndAsync();
             }
             finally
             {
-                //we could probably return the buffer between await ReceiveAsync, to limit memory pressure
-                Pool.Return(buffer);
+                Pool.Return(bytes);
             }
         }
     }
