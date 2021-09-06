@@ -44,7 +44,7 @@ namespace WebApplication3
             _commands.TryRemove(commandId, out _);
         }
 
-        public void TryCompleteCommand(string commandId)
+        private void TryCompleteCommand(string commandId)
         {
             if (_commands.TryGetValue(commandId, out var command))
             {
@@ -57,13 +57,6 @@ namespace WebApplication3
             Console.WriteLine("Got message " + message);
 
             TryCompleteCommand(message);
-
-            //hack, when we get this. start a new command
-            if (message == "command")
-            {
-                var id = Guid.NewGuid().ToString();
-                await CreateCommandAsync(id, id);
-            }
             
             //this would be the using the message processor
             await Socket.SendUtf8StringAsync($"Server: Hello. You said: {message}");

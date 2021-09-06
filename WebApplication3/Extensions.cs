@@ -1,17 +1,19 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.ObjectPool;
 
 namespace WebApplication3
 {
     public static class Extensions
     {
         private static readonly ArrayPool<byte> Pool = ArrayPool<byte>.Create();
+        
+        
         public static async Task SendUtf8StringAsync(this WebSocket webSocket, string payload)
         {
             var serverMsg = Encoding.UTF8.GetBytes(payload);
@@ -43,6 +45,10 @@ namespace WebApplication3
 
                 using var reader = new StreamReader(ms, Encoding.UTF8);
                 return await reader.ReadToEndAsync();
+            }
+            catch
+            {
+                return null;
             }
             finally
             {

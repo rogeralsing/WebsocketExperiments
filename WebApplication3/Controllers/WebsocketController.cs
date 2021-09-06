@@ -27,6 +27,7 @@ namespace WebApplication3.Controllers
           {
               var connectionId = Guid.NewGuid().ToString();
               using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+              
               Console.WriteLine("starting connection " + connectionId);
               try
               {
