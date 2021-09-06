@@ -8,9 +8,11 @@ namespace WebApplication3
 {
     public class WsConnection
     {
-        public WebSocket Socket { get; }
+        private WebSocket Socket { get; }
 
         private readonly ConcurrentDictionary<string, WsCommand> _commands = new();
+        private CancellationTokenSource _cts = new();
+        public CancellationToken CancellationToken => _cts.Token;
 
         public WsConnection(WebSocket socket)
         {
@@ -28,6 +30,8 @@ namespace WebApplication3
                 await OnMessageAsync(str);
             }
 
+            //connection is stopping
+            _cts.Cancel();
             await Socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "connection closed", CancellationToken.None);
         }
 

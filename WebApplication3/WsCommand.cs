@@ -17,20 +17,44 @@ namespace WebApplication3
         public async Task StartAsync()
         {
             Console.WriteLine($"Command {_id} started");
-            var timeout = Task.Delay(10000);
-
-            await Task.WhenAny(timeout, _tcs.Task);
-
-            if (_tcs.Task.IsCompleted)
+            var timeout = Task.Delay(10000, _connection.CancellationToken);
+            await using (_connection.CancellationToken.Register(() => _tcs.SetCanceled()))
             {
-                await OnCompletedAsync();
+                try
+                {
+                    await Task.WhenAny(timeout, _tcs.Task);
+
+                    if (_tcs.Task.IsCompleted)
+                    {
+                        if (_tcs.Task.IsCompletedSuccessfully)
+                        {
+                            await OnCompletedAsync();
+                        }
+                        else
+                        {
+                            await OnConnectionClosed();
+                        }
+                    }
+                    else
+                    {
+                        await OnTimeoutAsync();
+                    }
+                }
+                catch(Exception x)
+                {
+                    Console.WriteLine("Command failed " + x);
+                }
+                finally
+                {
+                    _connection.UnregisterCommand(_id);
+                }
             }
-            else
-            {
-                await OnTimeoutAsync();
-            }
-            
-            _connection.UnregisterCommand(_id);
+        }
+
+        private async Task OnConnectionClosed()
+        {
+            //cancellation token 
+            Console.WriteLine($"Command failed {_id} due to connection close");  
         }
 
         private async Task OnTimeoutAsync()
