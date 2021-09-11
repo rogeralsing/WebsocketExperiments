@@ -11,7 +11,7 @@ namespace WebApplication3.Controllers
     public class WebSocketsController : ControllerBase
     {
         private readonly ILogger<WebSocketsController> _logger;
-        private static readonly ConcurrentDictionary<string, WsConnection> Connections = new();
+        private static readonly ConcurrentDictionary<string, OcppConnection> Connections = new();
 
         public WebSocketsController(ILogger<WebSocketsController> logger)
         {
@@ -29,9 +29,10 @@ namespace WebApplication3.Controllers
               Console.WriteLine("starting connection " + connectionId);
               try
               {
-                  var ex = new WsConnection(webSocket);
-                  Connections.TryAdd(connectionId, ex);
-                  await ex.RunClientAsync();
+                  var ws = new WsConnection(webSocket);
+                  var ocpp = new OcppConnection(new OcppConnectionId(connectionId, Guid.NewGuid().ToString("N")), ws);
+                  Connections.TryAdd(connectionId, ocpp);
+                  await ocpp.StartAsync();
               }
               finally
               {

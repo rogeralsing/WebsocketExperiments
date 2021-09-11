@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace WebApplication3
 {
-    public class WsCommand
+    public class OcppCommand
     {
         private readonly string _id;
-        private readonly WsConnection _connection;
+        private readonly OcppConnection _connection;
         private readonly TaskCompletionSource _tcs = new();
 
-        public WsCommand(string id, WsConnection connection)
+        public OcppCommand(string id, OcppConnection connection)
         {
             _id = id;
             _connection = connection;
