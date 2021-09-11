@@ -37,7 +37,7 @@ namespace WebApplication3
         {
             await _semaphore.WaitAsync(_wsConnection.CancellationToken);
             //this task owns the lock now
-            //it is only released when we get a response
+            //it is only released when we get a response or command times out
             _ = command.StartAsync();
             await _wsConnection.SendUtf8StringAsync(call);
         }
