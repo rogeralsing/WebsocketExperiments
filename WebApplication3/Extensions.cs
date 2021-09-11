@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Buffers;
 using System.IO;
@@ -21,20 +22,23 @@ namespace WebApplication3
                 WebSocketMessageType.Text, true, CancellationToken.None);
         }
 
-        public static async Task<string> ReceiveUtf8StringAsync(this WebSocket webSocket,CancellationToken ct = default)
+        public static async Task<(string? Content, WebSocketReceiveResult? Result)> ReceiveUtf8StringAsync(this WebSocket webSocket,CancellationToken ct = default)
         {
             var bytes = Pool.Rent(1024);
+            WebSocketReceiveResult? result = null;
             try
             {
                 var buffer = new ArraySegment<byte>(bytes);
                 await using var ms = new MemoryStream();
-                WebSocketReceiveResult result;
                 do
                 {
                     ct.ThrowIfCancellationRequested();
 
                     result = await webSocket.ReceiveAsync(buffer, ct);
-                    ms.Write(buffer.Array, buffer.Offset, result.Count);
+
+                    
+                    
+                    ms.Write(buffer.Array!, buffer.Offset, result.Count);
                 } while (!result.EndOfMessage);
 
                 ms.Seek(0, SeekOrigin.Begin);
@@ -44,11 +48,12 @@ namespace WebApplication3
                 }
 
                 using var reader = new StreamReader(ms, Encoding.UTF8);
-                return await reader.ReadToEndAsync();
+                var content = await reader.ReadToEndAsync();
+                return (content, result);
             }
             catch
             {
-                return null;
+                return (null, result);
             }
             finally
             {
